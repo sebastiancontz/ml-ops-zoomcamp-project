@@ -198,5 +198,4 @@ pyrightconfig.json
 
 /prefect
 /mlflow
-Pipfile.lock
 *.ipynb
