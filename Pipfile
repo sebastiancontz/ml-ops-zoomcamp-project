@@ -12,6 +12,8 @@ python-dotenv = "*"
 colorama = "*"
 Jinja2 = "*"
 waitress = "*"
+psycopg2 = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 
