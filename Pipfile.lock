@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c4cba9681b0793d4a1687c628fd833d5198232f7bc51740f56ff9f2225825e3c"
+            "sha256": "f764c89a29d73e00e3aea063ea984a51c53e9138f4f3b51d1c249cf2ff0003f6"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -335,7 +335,7 @@
                 "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44",
                 "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"
             ],
-            "markers": "platform_system == 'Windows'",
+            "index": "pypi",
             "version": "==0.4.6"
         },
         "colorlog": {
@@ -760,11 +760,11 @@
         },
         "jsonschema": {
             "hashes": [
-                "sha256:8caf5b57a990a98e9b39832ef3cb35c176fe331414252b6e1b26fd5866f891a4",
-                "sha256:b508dd6142bd03f4c3670534c80af68cd7bbff9ea830b9cf2625d4a3c49ddf60"
+                "sha256:b5896514b46cc9283e9951bfebf51cc72fa3eab229919c0469f94e11b4387776",
+                "sha256:e5fde3cb78f3be8cf49150390ee4efbb8e73c46ea467d42cd4ec16e364495eb3"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==4.18.0"
+            "version": "==4.18.1"
         },
         "jsonschema-specifications": {
             "hashes": [
@@ -1397,7 +1397,7 @@
                 "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86",
                 "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==2.8.2"
         },
         "python-dotenv": {
@@ -1797,7 +1797,7 @@
                 "sha256:f34019dced51047d6f70cb9383b2ae2853b7fc4dce65129a5acd49f4f9256646",
                 "sha256:f6d3d39611ac2e4f62c3128a9eed45f19a6608670c5a2f4f07f24e8de3441d38"
             ],
-            "markers": "platform_python_implementation == 'CPython' and python_version < '3.12'",
+            "markers": "python_version < '3.12' and platform_python_implementation == 'CPython'",
             "version": "==0.2.7"
         },
         "scikit-learn": {
@@ -1867,7 +1867,7 @@
                 "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926",
                 "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==1.16.0"
         },
         "smmap": {
@@ -1977,7 +1977,7 @@
                 "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b",
                 "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"
             ],
-            "markers": "python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2'",
+            "markers": "python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==0.10.2"
         },
         "tqdm": {
