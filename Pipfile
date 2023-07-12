@@ -9,7 +9,6 @@ mlflow = "*"
 optuna = "*"
 prefect = "*"
 python-dotenv = "*"
-colorama = "*"
 
 [dev-packages]
 
