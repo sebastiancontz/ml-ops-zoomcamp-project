@@ -9,6 +9,9 @@ mlflow = "*"
 optuna = "*"
 prefect = "*"
 python-dotenv = "*"
+colorama = "*"
+Jinja2 = "*"
+waitress = "*"
 
 [dev-packages]
 

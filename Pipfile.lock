@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f764c89a29d73e00e3aea063ea984a51c53e9138f4f3b51d1c249cf2ff0003f6"
+            "sha256": "c4cba9681b0793d4a1687c628fd833d5198232f7bc51740f56ff9f2225825e3c"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -335,7 +335,7 @@
                 "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44",
                 "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"
             ],
-            "index": "pypi",
+            "markers": "platform_system == 'Windows'",
             "version": "==0.4.6"
         },
         "colorlog": {
@@ -731,7 +731,7 @@
                 "sha256:31351a702a408a9e7595a8fc6150fc3f43bb6bf7e319770cbc0db9df9437e852",
                 "sha256:6088930bfe239f0e6710546ab9c19c9ef35e29792895fed6e6e31a023a182a61"
             ],
-            "markers": "python_version >= '3.7'",
+            "markers": "platform_system == 'Windows'",
             "version": "==3.1.2"
         },
         "joblib": {
@@ -760,11 +760,11 @@
         },
         "jsonschema": {
             "hashes": [
-                "sha256:b5896514b46cc9283e9951bfebf51cc72fa3eab229919c0469f94e11b4387776",
-                "sha256:e5fde3cb78f3be8cf49150390ee4efbb8e73c46ea467d42cd4ec16e364495eb3"
+                "sha256:159fdff1443b4c5ed900d4eeac6b928a3485f4aff5fba6edd1e25cd66bb46b39",
+                "sha256:af3855bfa30e83b2200a5fe12ab5eb92460e4d3b8e4efd34094aa637f7272a87"
             ],
             "markers": "python_version >= '3.8'",
-            "version": "==4.18.1"
+            "version": "==4.18.2"
         },
         "jsonschema-specifications": {
             "hashes": [
@@ -2041,7 +2041,7 @@
                 "sha256:7500c9625927c8ec60f54377d590f67b30c8e70ef4b8894214ac6e4cad233d2a",
                 "sha256:780a4082c5fbc0fde6a2fcfe5e26e6efc1e8f425730863c04085769781f51eba"
             ],
-            "markers": "python_version >= '3.7'",
+            "markers": "platform_system == 'Windows'",
             "version": "==2.1.2"
         },
         "websocket-client": {
