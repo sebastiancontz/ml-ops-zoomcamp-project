@@ -183,7 +183,7 @@ def register_model(X_validation, y_pred, model, best_run_id):
     )
 
 @flow
-def model_training(data: str="./data/Real estate.csv"):
+def model_training(data: str="./real_estate_model/data/Real estate.csv"):
     global MLFLOW_TRACKING_URI
     global MLFLOW_MODEL_NAME
     

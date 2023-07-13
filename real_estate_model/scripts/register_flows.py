@@ -1,6 +1,6 @@
 from prefect.deployments import Deployment
 
-from flows.model_training import model_training
+from real_estate_model.flows.model_training import model_training
 
 def deploy():
     deployment = Deployment.build_from_flow(

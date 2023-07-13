@@ -196,6 +196,6 @@ pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,dotenv
 
-/prefect
-/mlflow
+/real_estate_model/prefect
+/real_estate_model/mlflow
 *.ipynb
