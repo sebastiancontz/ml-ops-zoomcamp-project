@@ -3,7 +3,6 @@ import numpy as np
 import pickle
 from pathlib import Path
 import os
-from dotenv import load_dotenv
 
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
@@ -184,8 +183,7 @@ def register_model(X_validation, y_pred, model, best_run_id):
     )
 
 @flow
-def main(data: str="./data/Real estate.csv"):
-    load_dotenv()
+def model_training(data: str="./data/Real estate.csv"):
     global MLFLOW_TRACKING_URI
     global MLFLOW_MODEL_NAME
     
@@ -205,13 +203,3 @@ def main(data: str="./data/Real estate.csv"):
     train_models(X_train, X_test, y_train, y_test, preprocessor, num_trials=10)
     model, y_pred, best_run_id = select_best_model(X_train, y_train, X_validation, y_validation, preprocessor)
     register_model(X_validation, y_pred, model, best_run_id)
-
-def deploy():
-    deployment = Deployment.build_from_flow(
-        flow=main,
-        name="model_training"
-    )
-    deployment.apply()
-
-if __name__ == "__main__":
-    deploy()
