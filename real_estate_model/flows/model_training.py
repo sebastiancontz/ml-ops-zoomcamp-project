@@ -155,7 +155,8 @@ def select_best_model(X_train, y_train, X_validation, y_validation, preprocessor
             mlflow.sklearn.log_model(pipeline, "model", signature=signature)
             mlflow.log_params(params)
             mlflow.log_metric("validation_rmse", rmse)
-            mlflow.log_input(X_validation, "validation", {"subset": "validation"})
+            mlflow_dataset = mlflow.data.from_pandas(X_validation, name="validation-subset")
+            mlflow.log_input(mlflow_dataset, "validation", {"subset": "validation"})
 
     # select the model with the lowest validation RMSE
     experiment = client.get_experiment_by_name("best_model_selection")
