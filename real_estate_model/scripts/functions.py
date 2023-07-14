@@ -16,7 +16,7 @@ def upload_file_to_sftp(filepath):
     hostname = os.getenv("STFP_HOST")
     username = os.getenv("SFTP_USER")
     password = os.getenv("SFTP_PASSWORD")
-    port = os.getenv("SFTP_PORT")
+    port = int(os.getenv("SFTP_PORT"))
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
     filepath = Path(filepath)
