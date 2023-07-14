@@ -134,33 +134,34 @@ def select_best_model(X_train, y_train, X_validation, y_validation, preprocessor
                 "params": run.data.params
             })
     
-    for run in best_runs:
-        mlflow.set_experiment("best_model_selection")
-        with mlflow.start_run():
-            params = run["params"]
-            for key, value in params.items():
-                try:
-                    params[key] = int(value)
-                except:
-                    pass
+    experiment = mlflow.set_experiment("best_model_selection")
+    experiment_id = experiment.experiment_id
 
-            pipeline = Pipeline([
-                ('preprocessor', preprocessor),
-                ('regressor', run["model"](**params))
-            ])
-            pipeline.fit(X_train, y_train)
-            y_pred = pipeline.predict(X_validation)
-            rmse = mean_squared_error(y_validation, y_pred, squared=False)
-            signature = infer_signature(X_validation, y_pred)
-            mlflow.sklearn.log_model(pipeline, "model", signature=signature)
-            mlflow.log_params(params)
-            mlflow.log_metric("validation_rmse", rmse)
-            mlflow_dataset = mlflow.data.from_pandas(X_validation, name="validation-subset")
-            mlflow.log_input(mlflow_dataset, "validation", {"subset": "validation"})
+    with mlflow.start_run(run_name="best_model_selection_run", experiment_id=experiment_id, description="parent"):    
+        for run in best_runs:
+            with mlflow.start_run(experiment_id=experiment_id, nested=True):
+                params = run["params"]
+                for key, value in params.items():
+                    try:
+                        params[key] = int(value)
+                    except:
+                        pass
+                pipeline = Pipeline([
+                    ('preprocessor', preprocessor),
+                    ('regressor', run["model"](**params))
+                ])
+                pipeline.fit(X_train, y_train)
+                y_pred = pipeline.predict(X_validation)
+                rmse = mean_squared_error(y_validation, y_pred, squared=False)
+                signature = infer_signature(X_validation, y_pred)
+                mlflow.sklearn.log_model(pipeline, "model", signature=signature)
+                mlflow.log_params(params)
+                mlflow.log_metric("validation_rmse", rmse)
+                mlflow_dataset = mlflow.data.from_pandas(X_validation, name="validation-subset")
+                mlflow.log_input(mlflow_dataset, "validation", {"subset": "validation"})
 
     # select the model with the lowest validation RMSE
-    experiment = client.get_experiment_by_name("best_model_selection")
-    best_run = client.search_runs(experiment.experiment_id, 
+    best_run = client.search_runs(experiment_id, 
                    order_by=["metrics.validation_rmse ASC"], 
                    max_results=1)[0]
     best_run_id = best_run.info.run_id
@@ -168,19 +169,33 @@ def select_best_model(X_train, y_train, X_validation, y_validation, preprocessor
     return best_run_id
 
 @task(name="register_model")
-def register_model(X_validation, best_run_id):
-    # get best model
-    model = mlflow.sklearn.load_model(f"runs:/{best_run_id}/model")
-    y_pred = model.predict(X_validation)
+def register_model(X_validation, y_validation, best_run_id):
 
-    # log model
-    signature = infer_signature(X_validation, y_pred)
-    mlflow.sklearn.log_model(
-        sk_model=model,
-        artifact_path="sklearn-model",
-        signature=signature,
-        registered_model_name=MLFLOW_MODEL_NAME,
-    )
+    with mlflow.start_run(best_run_id):
+        # get best model
+        model = mlflow.sklearn.load_model(f"runs:/{best_run_id}/model")
+        y_pred = model.predict(X_validation)
+
+        # log metrics
+        rmse = mean_squared_error(y_validation, y_pred, squared=False)
+        r2 = r2_score(y_validation, y_pred)
+        mae = mean_absolute_error(y_validation, y_pred)
+        metrics = {
+            "validation_rmse": rmse,
+            "validation_r2": r2,
+            "validation_mae": mae
+        }
+        mlflow.log_metrics(metrics)
+
+        # log model
+        signature = infer_signature(X_validation, y_pred)
+        mlflow.sklearn.log_model(
+            sk_model=model,
+            artifact_path="sklearn-model",
+            signature=signature,
+            registered_model_name=MLFLOW_MODEL_NAME,
+        )
+
     # promote to production
     client = MlflowClient(MLFLOW_TRACKING_URI)
     client.transition_model_version_stage(
@@ -210,6 +225,6 @@ def model_training(data: str="./real_estate_model/data/Real estate.csv"):
     X_train, X_test, y_train, y_test, X_validation, y_validation = split_data(data, target="house_price_of_unit_area", generate_val_set=True)
     train_models(X_train, X_test, y_train, y_test, preprocessor, num_trials=10)
     best_run_id = select_best_model(X_train, y_train, X_validation, y_validation, preprocessor)
-    register_model(X_validation, best_run_id)
+    register_model(X_validation, y_validation, best_run_id)
     # save validation data
     X_validation.to_csv("./real_estate_model/data/validation_subset.csv", index=False)
