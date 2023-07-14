@@ -1,8 +1,7 @@
 import pandas as pd
 import numpy as np
-import pickle
-from pathlib import Path
 import os
+from datetime import date
 
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
@@ -17,26 +16,18 @@ import optuna
 from optuna.samplers import TPESampler
 
 from prefect import flow, task
-from prefect.deployments import Deployment
 
 import mlflow
 from mlflow.entities import ViewType
 from mlflow.tracking import MlflowClient
 from mlflow.models.signature import infer_signature
 
-def load_pickle(filename):
-    with open(filename, "rb") as f_in:
-        return pickle.load(f_in)
-    
-def dump_pickle(filename, obj):
-    with open(filename, "wb") as f_out:
-        return pickle.dump(obj, f_out)
-    
+from real_estate_model.scripts import functions
+
 @task(name="read_data")
 def read_data(filename: str):
     data = pd.read_csv(filename, index_col="No")
-    data.columns = ["transaction_date", "house_age", "distance_to_the_nearest_MRT_station", "number_of_convenience_stores", "latitude", "longitude", "house_price_of_unit_area"]
-    data.drop(columns=["transaction_date"], inplace=True)
+    data = functions.process_csv(data)
     return data
 
 @task(name="split_data")
@@ -136,8 +127,8 @@ def select_best_model(X_train, y_train, X_validation, y_validation, preprocessor
     
     experiment = mlflow.set_experiment("best_model_selection")
     experiment_id = experiment.experiment_id
-
-    with mlflow.start_run(run_name="best_model_selection_run", experiment_id=experiment_id, description="parent"):    
+    run_name = f"best_model_selection_run_{date.today().strftime('%Y%m%d')}"
+    with mlflow.start_run(run_name=run_name, experiment_id=experiment_id, description="parent"):    
         for run in best_runs:
             with mlflow.start_run(experiment_id=experiment_id, nested=True):
                 params = run["params"]
@@ -227,4 +218,6 @@ def model_training(data: str="./real_estate_model/data/Real estate.csv"):
     best_run_id = select_best_model(X_train, y_train, X_validation, y_validation, preprocessor)
     register_model(X_validation, y_validation, best_run_id)
     # save validation data
-    X_validation.to_csv("./real_estate_model/data/validation_subset.csv", index=False)
+    filepath = "./real_estate_model/data/validation_subset.csv"
+    X_validation.to_csv(filepath, index=False)
+    functions.upload_file_to_sftp(filepath)
