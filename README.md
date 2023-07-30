@@ -125,7 +125,7 @@ The input features (X1 to X6) will be used to train the model, and the target va
 git clone https://github.com/sebastiancontz/ml-ops-zoomcamp-project.git
 ```
 2. Install `docker-compose` version 3.
-3. Clone the project repository:
+3. Go to the project directory:
 ```bash
 cd ml-ops-zoomcamp-project/
 ```
@@ -255,7 +255,7 @@ The project includes the calculation of training and batch prediction metrics us
 
     ![training_metrics](./real_estate_model/images/training_metrics.png)
 
-    - `training_metrics` dashboard:
+    - `batch_metrics` dashboard:
 
     ![Prefect train flow](./real_estate_model/images/batch_metrics.png)
 
