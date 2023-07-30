@@ -1,13 +1,16 @@
 from prefect.deployments import Deployment
 
 from real_estate_model.flows.model_training import model_training
+from real_estate_model.flows.model_batch_prediction import batch_prediction
 
-def deploy():
+def deploy(flow):
     deployment = Deployment.build_from_flow(
-        flow=model_training,
-        name="model_training"
+        flow=flow,
+        name=flow.__name__
     )
     deployment.apply()
 
 if __name__ == "__main__":
-    deploy()
+    flows = [model_training, batch_prediction]
+    for flow in flows:
+        deploy(flow)

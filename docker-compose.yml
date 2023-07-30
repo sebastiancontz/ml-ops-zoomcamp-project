@@ -1,0 +1,144 @@
+version: '3.9'
+
+x-environment: &commonEnvironment
+  MLFLOW_MODEL_NAME: real-estate-model
+  MLFLOW_TRACKING_URI: http://mlflow:5000
+  PREFECT_API_URL: http://prefect-server:4200/api
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: 94aefb8be78b2b7c344d11d1ba8a79ef087eceb19150881f69460b8772753263
+  POSTGRES_HOST: database
+  POSTGRES_PORT: 5432
+  AWS_ENDPOINT_URL: http://localstack:4566
+  AWS_DEFAULT_REGION: us-east-1
+  AWS_ACCESS_KEY_ID: key_id
+  AWS_SECRET_ACCESS_KEY: access_key
+  
+services:
+  database:
+    image: postgres
+    environment:
+      <<: *commonEnvironment
+    restart: unless-stopped
+    volumes:
+      - postgres:/var/lib/postgresql/data
+      - ./real_estate_model/scripts/init_database.sql:/docker-entrypoint-initdb.d/init_database.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
+
+  grafana:
+    image: grafana/grafana
+    user: "472"
+    restart: always
+    environment:
+      <<: *commonEnvironment
+      GF_INSTALL_PLUGINS: michaeldmoore-scatter-panel,natel-plotly-panel,ae3e-plotly-panel
+    volumes:
+      - ./real_estate_model/config/grafana_datasources.yaml:/etc/grafana/provisioning/datasources/datasource.yaml:ro
+      - ./real_estate_model/config/grafana_dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
+      - ./real_estate_model/dashboards:/opt/grafana/dashboards
+    ports:
+      - "3000:3000"
+    depends_on:
+      database: 
+        condition: service_started
+    networks:
+      - backend
+
+  localstack:
+    image: localstack/localstack
+    ports:
+        - "4566:4566"
+        - "4510-4559:4510-4559"
+    environment:
+      <<: *commonEnvironment
+      DOCKER_HOST: unix:///var/run/docker.sock
+      EAGER_SERVICE_LOADING: 1
+      SERVICES: s3,kinesis,lambda 
+    volumes:
+      - "${TMPDIR:-/tmp}/localstack:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - ./real_estate_model/scripts/localstack_init.sh:/etc/localstack/init/ready.d/localstack_init.sh
+    networks:
+      - backend
+
+  bash:
+    build: .
+    command: bash
+    volumes:
+      - ./real_estate_model/data/:/ml-ops-zoomcamp-project/real_estate_model/data/
+    <<: &default
+      image: ml-ops-zoomcamp-project
+      
+  tests:
+    <<: *default
+    working_dir: /ml-ops-zoomcamp-project/real_estate_model
+    command: pipenv run pytest
+
+  prefect-server:
+    <<: *default
+    environment:
+      <<: *commonEnvironment
+      PREFECT_API_URL: http://127.0.0.1:4200/api
+      PREFECT_API_DATABASE_CONNECTION_URL: postgresql+asyncpg://postgres:94aefb8be78b2b7c344d11d1ba8a79ef087eceb19150881f69460b8772753263@database:5432/prefect
+    command: prefect server start --host 0.0.0.0
+    restart: always
+    ports:
+      - "4200:4200"
+    depends_on:
+      tests:
+        condition: service_completed_successfully
+      database:
+        condition: service_started
+    networks:
+      - backend
+
+  prefect-agent:
+    <<: *default
+    environment: *commonEnvironment
+    command: bash -c "
+      sleep 10s &&
+      python /ml-ops-zoomcamp-project/real_estate_model/scripts/register_flows.py &&
+      prefect agent start -p default-agent-pool"
+    restart: always
+    depends_on:
+      prefect-server:
+        condition: service_started
+    networks:
+      - backend
+
+  mlflow:
+    <<: *default
+    environment: *commonEnvironment
+    command: mlflow server --backend-store-uri postgresql://postgres:94aefb8be78b2b7c344d11d1ba8a79ef087eceb19150881f69460b8772753263@database:5432/mlflowdb --host 0.0.0.0 --port 5000 --default-artifact-root s3://mlflow
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_started
+      localstack:
+        condition: service_started
+    ports:
+      - "5000:5000"    
+    networks:
+      - backend
+
+  api:
+    <<: *default
+    environment: *commonEnvironment
+    command: gunicorn --bind=0.0.0.0:5010 real_estate_model.api.run:app
+    ports:
+      - "5010:5010"
+    depends_on:
+      - prefect-agent
+      - prefect-server
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  postgres:
+    driver: local

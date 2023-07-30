@@ -1,0 +1,418 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 1,
+    "links": [],
+    "liveNow": false,
+    "panels": [
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "PA8570770AD4C2F67"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {
+          "h": 6,
+          "w": 13,
+          "x": 5,
+          "y": 0
+        },
+        "id": 3,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "center",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": [
+              "lastNotNull"
+            ],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto"
+        },
+        "pluginVersion": "10.0.2",
+        "targets": [
+          {
+            "datasource": {
+              "type": "postgres",
+              "uid": "PA8570770AD4C2F67"
+            },
+            "editorMode": "builder",
+            "format": "table",
+            "rawSql": "SELECT rmse, mae, r2, error_std FROM metrics LIMIT 1 ",
+            "refId": "A",
+            "sql": {
+              "columns": [
+                {
+                  "parameters": [
+                    {
+                      "name": "rmse",
+                      "type": "functionParameter"
+                    }
+                  ],
+                  "type": "function"
+                },
+                {
+                  "parameters": [
+                    {
+                      "name": "mae",
+                      "type": "functionParameter"
+                    }
+                  ],
+                  "type": "function"
+                },
+                {
+                  "parameters": [
+                    {
+                      "name": "r2",
+                      "type": "functionParameter"
+                    }
+                  ],
+                  "type": "function"
+                },
+                {
+                  "parameters": [
+                    {
+                      "name": "error_std",
+                      "type": "functionParameter"
+                    }
+                  ],
+                  "type": "function"
+                }
+              ],
+              "groupBy": [
+                {
+                  "property": {
+                    "type": "string"
+                  },
+                  "type": "groupBy"
+                }
+              ],
+              "limit": 50
+            },
+            "table": "metrics"
+          }
+        ],
+        "title": "Training metrics",
+        "transparent": true,
+        "type": "stat"
+      },
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "PA8570770AD4C2F67"
+        },
+        "gridPos": {
+          "h": 14,
+          "w": 9,
+          "x": 0,
+          "y": 6
+        },
+        "id": 1,
+        "options": {
+          "ReferenceLines": [],
+          "border": {
+            "color": "yellow",
+            "size": 0
+          },
+          "fieldSets": [
+            {
+              "col": 1,
+              "color": "#3274D9",
+              "colorCol": -1,
+              "dotSize": 2,
+              "hidden": false,
+              "lineSize": 1,
+              "lineType": "linear",
+              "polynomialOrder": 3,
+              "sizeCol": -3
+            }
+          ],
+          "grid": {
+            "color": "#00000000"
+          },
+          "label": {
+            "col": -1,
+            "color": "#CCC",
+            "textSize": 2
+          },
+          "legend": {
+            "show": false,
+            "size": 0
+          },
+          "xAxis": {
+            "col": 0,
+            "inverted": false
+          },
+          "xAxisExtents": {
+            "min": null,
+            "max": null
+          },
+          "xAxisTitle": {
+            "text": "Theorical Quantiles",
+            "color": "white",
+            "textSize": 1.5,
+            "rotated": false,
+            "logScale": false,
+            "fontSize": 4,
+            "fontColor": "white"
+          },
+          "xMargins": {
+            "lower": 40,
+            "upper": 10
+          },
+          "yAxisExtents": {
+            "min": null,
+            "max": null
+          },
+          "yAxisTitle": {
+            "text": "Sample Quantiles",
+            "color": "#ccccdc",
+            "textSize": 1.5,
+            "rotated": true,
+            "logScale": false,
+            "fontSize": 4,
+            "fontColor": "white"
+          },
+          "yMargins": {
+            "lower": 30,
+            "upper": 20
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "postgres",
+              "uid": "PA8570770AD4C2F67"
+            },
+            "editorMode": "code",
+            "format": "table",
+            "rawQuery": true,
+            "rawSql": "SELECT\r\n  \"Theorical Quantiles\",\r\n  \"Sample Quantiles\"\r\nFROM\r\n  qqdata",
+            "refId": "A",
+            "sql": {
+              "columns": [
+                {
+                  "parameters": [
+                    {
+                      "name": "\"Theorical Quantiles\"",
+                      "type": "functionParameter"
+                    }
+                  ],
+                  "type": "function"
+                },
+                {
+                  "parameters": [
+                    {
+                      "name": "\"Sample Quantiles\"",
+                      "type": "functionParameter"
+                    }
+                  ],
+                  "type": "function"
+                }
+              ],
+              "groupBy": [
+                {
+                  "property": {
+                    "type": "string"
+                  },
+                  "type": "groupBy"
+                }
+              ],
+              "limit": 50
+            },
+            "table": "qqdata"
+          }
+        ],
+        "title": "QQ Plot",
+        "transparent": true,
+        "type": "michaeldmoore-scatter-panel"
+      },
+      {
+        "datasource": {
+          "type": "postgres",
+          "uid": "PA8570770AD4C2F67"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "fillOpacity": 80,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "viz": false
+              },
+              "lineWidth": 1
+            },
+            "mappings": [],
+            "max": 10,
+            "min": -10,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "__systemRef": "hideSeriesFrom",
+              "matcher": {
+                "id": "byNames",
+                "options": {
+                  "mode": "exclude",
+                  "names": [
+                    "order_statistic_medians_y"
+                  ],
+                  "prefix": "All except:",
+                  "readOnly": true
+                }
+              },
+              "properties": [
+                {
+                  "id": "custom.hideFrom",
+                  "value": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": true
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "gridPos": {
+          "h": 13,
+          "w": 12,
+          "x": 9,
+          "y": 6
+        },
+        "id": 2,
+        "options": {
+          "bucketOffset": 0,
+          "combine": false,
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom",
+            "showLegend": false
+          }
+        },
+        "targets": [
+          {
+            "datasource": {
+              "type": "postgres",
+              "uid": "PA8570770AD4C2F67"
+            },
+            "editorMode": "builder",
+            "format": "table",
+            "rawSql": "SELECT order_statistic_medians_y FROM order_statistic_medians_y ORDER BY order_statistic_medians_y DESC ",
+            "refId": "A",
+            "sql": {
+              "columns": [
+                {
+                  "parameters": [
+                    {
+                      "name": "order_statistic_medians_y",
+                      "type": "functionParameter"
+                    }
+                  ],
+                  "type": "function"
+                }
+              ],
+              "groupBy": [
+                {
+                  "property": {
+                    "type": "string"
+                  },
+                  "type": "groupBy"
+                }
+              ],
+              "orderBy": {
+                "property": {
+                  "name": [
+                    "order_statistic_medians_y"
+                  ],
+                  "type": "string"
+                },
+                "type": "property"
+              },
+              "orderByDirection": "DESC"
+            },
+            "table": "order_statistic_medians_y"
+          }
+        ],
+        "title": "Error distribution",
+        "transparent": true,
+        "type": "histogram"
+      }
+    ],
+    "refresh": "",
+    "schemaVersion": 38,
+    "style": "dark",
+    "tags": [],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "",
+    "title": "training_metrics",
+    "uid": "cdc00d03-91f3-42df-abe7-2d59360de52b",
+    "version": 2,
+    "weekStart": ""
+  }

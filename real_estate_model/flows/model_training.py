@@ -22,27 +22,21 @@ from mlflow.entities import ViewType
 from mlflow.tracking import MlflowClient
 from mlflow.models.signature import infer_signature
 
-from real_estate_model.scripts import functions
+import awswrangler as wr
+wr.config.s3_endpoint_url = os.getenv("AWS_ENDPOINT_URL")
 
-@task(name="read_data")
-def read_data(filename: str):
-    data = pd.read_csv(filename, index_col="No")
-    data = functions.process_csv(data)
-    return data
+from real_estate_model.utils import functions
+from real_estate_model.flows.model_train_metrics import generate_train_metrics
 
 @task(name="split_data")
-def split_data(data: pd.DataFrame, target: str, generate_val_set: bool = True):
-    if generate_val_set:
-        # generate validation, train and test sets
-        np.random.seed(42)
-        val_index = np.random.randint(0, data.shape[0], int(data.shape[0]*0.2), dtype=np.int32)
-        validation_set = data.iloc[val_index]
-        X_validation = validation_set.drop(target, axis=1)
-        y_validation = validation_set[target]
-        train_data = data.drop(index=validation_set.index)
-    else:
-        train_data = data.copy()
-        validation_set = None
+def split_data(data: pd.DataFrame, target: str):
+    # generate validation, train and test sets
+    np.random.seed(42)
+    val_index = np.random.randint(0, data.shape[0], int(data.shape[0]*0.2), dtype=np.int32)
+    validation_set = data.iloc[val_index]
+    X_validation = validation_set.drop(target, axis=1)
+    y_validation = validation_set[target]
+    train_data = data.drop(index=validation_set.index)
     X_train, X_test, y_train, y_test = train_test_split(train_data.drop(target, axis=1), train_data[target], test_size=0.33, random_state=42)
     return X_train, X_test, y_train, y_test, X_validation, y_validation
 
@@ -70,7 +64,7 @@ def train_models(X_train, X_test, y_train, y_test, preprocessor, num_trials: int
             rmse = mean_squared_error(y_test, y_pred, squared=False)
             mlflow.sklearn.log_model(pipeline, "model")
             mlflow.log_params(params)
-            mlflow.log_metric("test_rmse", rmse)
+            mlflow.log_metric("test_rmse", float(rmse))
         return rmse
 
     def knn_optimize(trial):
@@ -102,7 +96,10 @@ def train_models(X_train, X_test, y_train, y_test, preprocessor, num_trials: int
     study.optimize(knn_optimize, n_trials=num_trials)
 
 @task(name="select_best_model", log_prints=True)
-def select_best_model(X_train, y_train, X_validation, y_validation, preprocessor):
+def select_best_model(X_train, y_train, X_test, y_test, X_validation, y_validation, preprocessor):
+    X = pd.concat([X_train, X_test])
+    y = pd.concat([y_train, y_test])
+
     client = MlflowClient(MLFLOW_TRACKING_URI)
     models = {
         "random-forest-hyperparameter-tuning": RandomForestRegressor,
@@ -141,15 +138,17 @@ def select_best_model(X_train, y_train, X_validation, y_validation, preprocessor
                     ('preprocessor', preprocessor),
                     ('regressor', run["model"](**params))
                 ])
-                pipeline.fit(X_train, y_train)
+                pipeline.fit(X, y)
                 y_pred = pipeline.predict(X_validation)
                 rmse = mean_squared_error(y_validation, y_pred, squared=False)
                 signature = infer_signature(X_validation, y_pred)
                 mlflow.sklearn.log_model(pipeline, "model", signature=signature)
                 mlflow.log_params(params)
                 mlflow.log_metric("validation_rmse", rmse)
-                mlflow_dataset = mlflow.data.from_pandas(X_validation, name="validation-subset")
-                mlflow.log_input(mlflow_dataset, "validation", {"subset": "validation"})
+                validation_dataset = mlflow.data.from_pandas(X, name="validation-subset")
+                training_dataset = mlflow.data.from_pandas(X_validation, name="training-subset")
+                mlflow.log_input(validation_dataset, "validation", {"subset": "validation"})
+                mlflow.log_input(training_dataset, "training", {"subset": "training"})
 
     # select the model with the lowest validation RMSE
     best_run = client.search_runs(experiment_id, 
@@ -161,7 +160,6 @@ def select_best_model(X_train, y_train, X_validation, y_validation, preprocessor
 
 @task(name="register_model")
 def register_model(X_validation, y_validation, best_run_id):
-
     with mlflow.start_run(best_run_id):
         # get best model
         model = mlflow.sklearn.load_model(f"runs:/{best_run_id}/model")
@@ -196,16 +194,17 @@ def register_model(X_validation, y_validation, best_run_id):
         archive_existing_versions=True   
     )
 
-@flow
-def model_training(data: str="./real_estate_model/data/Real estate.csv"):
+@flow(name="model_training")
+def model_training(filepath: str="./real_estate_model/data/Real estate.csv", is_s3_file: bool=False):
     global MLFLOW_TRACKING_URI
     global MLFLOW_MODEL_NAME
     
     MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI")
     MLFLOW_MODEL_NAME = os.getenv("MLFLOW_MODEL_NAME")
-
     mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-    data = read_data(data)
+
+    data = functions.read_data(filepath, is_s3_file)
+    data = functions.process_csv(data)
     preprocessor = ColumnTransformer(
         remainder='drop',
         transformers=[
@@ -213,11 +212,28 @@ def model_training(data: str="./real_estate_model/data/Real estate.csv"):
             ('scaler', StandardScaler(), ["house_age", "distance_to_the_nearest_MRT_station", "latitude", "longitude"])   
         ]
     )
-    X_train, X_test, y_train, y_test, X_validation, y_validation = split_data(data, target="house_price_of_unit_area", generate_val_set=True)
+    X_train, X_test, y_train, y_test, X_validation, y_validation = split_data(data, target="house_price_of_unit_area")
     train_models(X_train, X_test, y_train, y_test, preprocessor, num_trials=10)
-    best_run_id = select_best_model(X_train, y_train, X_validation, y_validation, preprocessor)
+    best_run_id = select_best_model(X_train, y_train, X_test, y_test, X_validation, y_validation, preprocessor)
     register_model(X_validation, y_validation, best_run_id)
+    
     # save validation data
-    filepath = "./real_estate_model/data/validation_subset.csv"
-    X_validation.to_csv(filepath, index=False)
-    functions.upload_file_to_sftp(filepath)
+    X_validation["house_price_of_unit_area"] = y_validation.values
+    wr.s3.to_csv(X_validation, f"s3://files/{date.today().strftime('%Y%m%d')}/validation_data.csv", index=False)
+
+    # save training data
+    X_train["house_price_of_unit_area"] = y_train.values
+    wr.s3.to_csv(X_train, f"s3://files/{date.today().strftime('%Y%m%d')}/training_data.csv", index=False)
+
+    # save test data
+    X_test["house_price_of_unit_area"] = y_test.values
+    wr.s3.to_csv(X_test, f"s3://files/{date.today().strftime('%Y%m%d')}/testing_data.csv", index=False)
+
+    # save final model training dataset
+    X = pd.concat([X_train, X_test])
+    y = pd.concat([y_train, y_test])
+    X["house_price_of_unit_area"] = y.values
+    wr.s3.to_csv(X, f"s3://files/training_data.csv", index=False)
+
+    # call train metrics flow
+    generate_train_metrics()

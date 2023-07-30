@@ -9,14 +9,16 @@ mlflow = "*"
 optuna = "*"
 prefect = "*"
 python-dotenv = "*"
-colorama = "*"
-Jinja2 = "*"
-waitress = "*"
-psycopg2 = "*"
 psycopg2-binary = "*"
-pysftp = "*"
+boto3 = "*"
+awswrangler = "*"
+flask = "*"
+gunicorn = "*"
+evidently = "*"
+pytz = "*"
 
 [dev-packages]
+pytest = "*"
 
 [requires]
 python_version = "3.8"
