@@ -96,8 +96,10 @@ The input features (X1 to X6) will be used to train the model, and the target va
  ┃ ┃ ┣ 📜prefect_train.png
  ┃ ┃ ┗ 📜training_metrics.png
  ┃ ┣ 📂scripts
+ ┃ ┃ ┣ 📂localstack
+ ┃ ┃ ┃ ┣ 📜Dockerfile
+ ┃ ┃ ┃ ┗ 📜init-aws.sh
  ┃ ┃ ┣ 📜init_database.sql
- ┃ ┃ ┣ 📜localstack_init.sh
  ┃ ┃ ┣ 📜register_flows.py
  ┃ ┣ 📂tests
  ┃ ┃ ┣ 📂integration
