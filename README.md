@@ -8,6 +8,10 @@ More info at [mlops-zoomcamp](https://github.com/DataTalksClub/mlops-zoomcamp.gi
 * Name: Sebastián Contreras Zambrano
 * LinkedIn: [Profile](https://www.linkedin.com/in/sebastian-cz/)
 
+## Certification
+
+Update as of August 14, 2023: I have received the completion certificate. You can check it out [here](https://certificate.datatalks.club/mlops-zoomcamp/2023/e07e5ad344bc7f981489da5f608c3dd68d668522.pdf)
+
 ## Table of Contents
 
 1. [Problem description](#problem-description)
